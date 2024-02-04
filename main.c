@@ -7,10 +7,16 @@
 int CHUNK_SIZE = 16 * 1024;
 char *read_argv_params(int, char *[]);
 
+typedef struct HuffmanLeaf
+{
+    char letter;
+    int frequency;
+} huffman_leaf;
+
 int main(int argc, char *argv[])
 {
     FILE *fd;
-    u_int64_t hashArray[SIZE];
+    huffman_leaf hashArray[SIZE];
     char *file_name = (char *)malloc(sizeof(char) * CHUNK_SIZE);
     file_name = read_argv_params(argc, argv);
     fd = fopen(file_name, "r");
@@ -19,9 +25,9 @@ int main(int argc, char *argv[])
         printf("Error opening file");
         return 0;
     }
-    for (int i = 0; i < SIZE; i++)
+    for (int j = 0; j < SIZE; j++)
     {
-        hashArray[i] = 0;
+        hashArray[j] = (huffman_leaf){(char)j, 0};
     }
     int ch = EOF;
     while (ch)
@@ -29,14 +35,13 @@ int main(int argc, char *argv[])
         ch = getc(fd);
         if (ch == EOF)
         {
-            printf("Ending...");
-            break;
+            ch = 0;
         }
-        hashArray[ch]++;
+        hashArray[ch].frequency++;
     }
     for (int j = 0; j < SIZE; j++)
     {
-        printf("Character: %c, Frequency: %llu \n", j, hashArray[j]);
+        printf("Character: %c, Frequency: %d \n", hashArray[j].letter, hashArray[j].frequency);
     }
     return 0;
 }
