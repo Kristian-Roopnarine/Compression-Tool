@@ -2,12 +2,17 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <string.h>
 
 #define SIZE 256
 
+char zero = '0';
+char one = '1';
+
 typedef struct HuffmanLeaf
 {
-    char letter;
+    // this is an int because char type does not have support for all ASCII values
+    int letter;
     int frequency;
     bool is_internal_node;
     struct HuffmanLeaf *left;
@@ -25,65 +30,110 @@ void check_min_heap_property(huffman_leaf *a[], int n);
 void build_huffman_tree(huffman_leaf *a[], int n);
 huffman_leaf *dequeue(huffman_leaf *a[], int *n);
 void insert(huffman_leaf *a[], huffman_leaf *node, int *n);
-void walk_tree(huffman_leaf *tree);
+void walk_tree(huffman_leaf *tree, char *[], char[], int);
 huffman_leaf *create_huffman_leaf(char j);
+void generate_prefix_code_table(huffman_leaf *, char *[]);
+huffman_leaf *initialize_array(size_t);
+void walker(huffman_leaf *, char *bitStr, int bitSize);
 
 int main(int argc, char *argv[])
 {
     FILE *fd;
-    huffman_leaf *hashArray[SIZE];
     char *file_name = (char *)malloc(sizeof(char) * CHUNK_SIZE);
     file_name = read_argv_params(argc, argv);
     fd = fopen(file_name, "r");
+    huffman_leaf *ptr = initialize_array(SIZE);
     if (fd == NULL)
     {
         printf("Error opening file");
         return 0;
     }
-    for (int j = 0; j < SIZE; j++)
-    {
-        hashArray[j] = create_huffman_leaf(j);
-    }
     int ch = EOF;
     int items_in_heap = 0;
-    int total_size = 0;
     while (ch)
     {
         ch = getc(fd);
         if (ch == EOF)
         {
-            ch = 0;
+            break;
         }
-        if (hashArray[ch]->frequency == 0)
+        if (ptr[ch].frequency == 0)
         {
             items_in_heap++;
         }
-        hashArray[ch]->frequency++;
-        total_size++;
+        ptr[ch].frequency++;
+    }
+    huffman_leaf *p;
+    printf("Items to add to heap: %d\n", items_in_heap);
+    for (p = ptr; p < &ptr[SIZE]; p++)
+    {
+        printf("Character: %c, Character Number: %d, Frequency: %d\n", p->letter, p->letter, p->frequency);
     }
     huffman_leaf *minHeap[items_in_heap];
     int heap_boundary = 0;
-    int i = 1;
-    while (heap_boundary < items_in_heap - 1)
+    for (p = ptr; p < &ptr[SIZE]; p++)
     {
-        if (hashArray[i]->frequency != 0)
+        if (p->frequency == 0)
         {
-            minHeap[heap_boundary] = hashArray[i];
-            heap_boundary++;
+            continue;
         }
-        i++;
+        minHeap[heap_boundary] = p;
+        heap_boundary++;
     }
     for (int i = heap_boundary - 1; i >= 0; i--)
     {
         min_heapify(minHeap, i, heap_boundary - 1);
     }
-    // print_heap(minHeap, heap_boundary);
-    //    check_min_heap_property(minHeap, items_in_heap);
+    print_heap(minHeap, heap_boundary);
     build_huffman_tree(minHeap, heap_boundary);
-    // print_heap(minHeap, heap_boundary);
     huffman_leaf *huffman_tree = minHeap[0];
-    walk_tree(huffman_tree);
+    char bitStr[] = "";
+    walker(huffman_tree, bitStr, 0);
+    free(ptr);
     return 0;
+}
+
+void walker(huffman_leaf *tree, char bitStr[], int bitSize)
+{
+    char bitCopy[bitSize + 1];
+    strcpy(bitCopy, bitStr);
+    if (tree->left == NULL && tree->right == NULL)
+    {
+        printf("Frequency: %d, Character: %c, Bits: %s\n", tree->frequency, tree->letter, bitCopy);
+        return;
+    }
+    bitSize++;
+    if (tree->left)
+    {
+        strncat(bitCopy, &zero, 1);
+        walker(tree->left, bitCopy, bitSize);
+    }
+    if (tree->right)
+    {
+        strncat(bitCopy, &one, 1);
+        walker(tree->right, bitCopy, bitSize);
+    }
+}
+
+huffman_leaf *initialize_array(size_t array_size)
+{
+    huffman_leaf *ptr = (huffman_leaf *)malloc((sizeof(huffman_leaf) * array_size));
+    for (int i = 0; i < array_size; i++)
+    {
+        ptr[i].frequency = 0;
+        ptr[i].letter = i;
+        ptr[i].is_internal_node = false;
+        ptr[i].left = NULL;
+        ptr[i].right = NULL;
+    }
+    return ptr;
+}
+
+void generate_prefix_code_table(huffman_leaf *a, char *prefix_code_table[])
+{
+    // walk tree
+    char bitRep[] = "";
+    walk_tree(a, prefix_code_table, bitRep, 0);
 }
 
 huffman_leaf *create_huffman_leaf(char j)
@@ -95,26 +145,6 @@ huffman_leaf *create_huffman_leaf(char j)
     ptr->right = NULL;
     ptr->letter = j;
     return ptr;
-}
-
-void walk_tree(huffman_leaf *tree)
-{
-    if (!tree->is_internal_node)
-    {
-        printf("Letter: %c, Frequency: %d\n", tree->letter, tree->frequency);
-    }
-    if (tree->left == NULL && tree->right == NULL)
-    {
-        return;
-    }
-    if (tree->left != NULL)
-    {
-        walk_tree(tree->left);
-    }
-    if (tree->right != NULL)
-    {
-        walk_tree(tree->right);
-    }
 }
 
 char *read_argv_params(int argc, char *argv[])
