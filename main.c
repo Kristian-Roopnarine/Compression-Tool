@@ -30,11 +30,10 @@ void check_min_heap_property(huffman_leaf *a[], int n);
 void build_huffman_tree(huffman_leaf *a[], int n);
 huffman_leaf *dequeue(huffman_leaf *a[], int *n);
 void insert(huffman_leaf *a[], huffman_leaf *node, int *n);
-void walk_tree(huffman_leaf *tree, char *[], char[], int);
 huffman_leaf *create_huffman_leaf(char j);
 void generate_prefix_code_table(huffman_leaf *, char *[]);
 huffman_leaf *initialize_array(size_t);
-void walker(huffman_leaf *, char *bitStr, int bitSize);
+void walker(huffman_leaf *, char bitStr[], int bitSize);
 
 int main(int argc, char *argv[])
 {
