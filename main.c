@@ -21,6 +21,7 @@ int left_child(int i);
 int right_child(int i);
 void min_heapify(huffman_leaf a[], int i, int n);
 void print_heap(huffman_leaf a[], int n);
+void check_min_heap_property(huffman_leaf a[], int n);
 
 int main(int argc, char *argv[])
 {
@@ -53,7 +54,6 @@ int main(int argc, char *argv[])
         }
         hashArray[ch].frequency++;
     }
-    printf("%d\n", items_in_heap);
     huffman_leaf minHeap[items_in_heap];
     int heap_boundary = 0;
     int number_of_huffman_leaf = sizeof(minHeap) / sizeof(huffman_leaf);
@@ -72,25 +72,7 @@ int main(int argc, char *argv[])
     {
         min_heapify(minHeap, i, items_in_heap - 1);
     }
-    for (int i = 0; i < items_in_heap; i++)
-    {
-        huffman_leaf parent = minHeap[i];
-        int left_idx = left_child(i);
-        int right_idx = right_child(i);
-        if (left_idx < number_of_huffman_leaf && minHeap[left_idx].frequency < parent.frequency)
-        {
-            printf("%d", left_idx);
-            printf("Does not satisfy min heap property.\n");
-            printf("Parent : %d, Left: %d", parent.frequency, minHeap[left_idx].frequency);
-            return 1;
-        }
-        if (right_idx < number_of_huffman_leaf && minHeap[right_idx].frequency < parent.frequency)
-        {
-            printf("Does not satisfy min heap property.\n");
-            printf("Parent : %d, Right: %d", parent.frequency, minHeap[right_idx].frequency);
-            return 1;
-        }
-    }
+    check_min_heap_property(minHeap, number_of_huffman_leaf);
     return 0;
 }
 
@@ -157,4 +139,27 @@ void print_heap(huffman_leaf a[], int n)
         printf("%d, ", a[i].frequency);
     }
     printf("\n");
+}
+
+void check_min_heap_property(huffman_leaf a[], int n)
+{
+    for (int i = 0; i < n; i++)
+    {
+        huffman_leaf parent = a[i];
+        int left_idx = left_child(i);
+        int right_idx = right_child(i);
+        if (left_idx < n && a[left_idx].frequency < parent.frequency)
+        {
+            printf("%d", left_idx);
+            printf("Does not satisfy min heap property.\n");
+            printf("Parent : %d, Left: %d", parent.frequency, a[left_idx].frequency);
+            break;
+        }
+        if (right_idx < n && a[right_idx].frequency < parent.frequency)
+        {
+            printf("Does not satisfy min heap property.\n");
+            printf("Parent : %d, Right: %d", parent.frequency, a[right_idx].frequency);
+            break;
+        }
+    }
 }
