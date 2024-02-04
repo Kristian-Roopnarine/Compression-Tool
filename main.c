@@ -20,17 +20,18 @@ int parent(int i);
 int left_child(int i);
 int right_child(int i);
 void min_heapify(huffman_leaf a[], int i, int n);
-void print_heap(huffman_leaf a[], int n);
-void check_min_heap_property(huffman_leaf a[], int n);
+void print_heap(huffman_leaf *a[], int n);
+void check_min_heap_property(huffman_leaf *a[], int n);
 void build_huffman_tree(huffman_leaf a[], int n);
 huffman_leaf dequeue(huffman_leaf a[], int *n);
-void insert(huffman_leaf a[], huffman_leaf node, int *n);
+void insert(huffman_leaf *a[], huffman_leaf *node, int *n);
 void walk_tree(huffman_leaf tree);
+huffman_leaf *create_huffman_leaf(char j);
 
 int main(int argc, char *argv[])
 {
     FILE *fd;
-    huffman_leaf hashArray[SIZE];
+    huffman_leaf *hashArray[SIZE];
     char *file_name = (char *)malloc(sizeof(char) * CHUNK_SIZE);
     file_name = read_argv_params(argc, argv);
     fd = fopen(file_name, "r");
@@ -41,7 +42,7 @@ int main(int argc, char *argv[])
     }
     for (int j = 0; j < SIZE; j++)
     {
-        hashArray[j] = (huffman_leaf){(char)j, 0, false, NULL, NULL};
+        hashArray[j] = create_huffman_leaf(j);
     }
     int ch = EOF;
     int items_in_heap = 0;
@@ -52,35 +53,53 @@ int main(int argc, char *argv[])
         {
             ch = 0;
         }
-        if (hashArray[ch].frequency == 0)
+        if (hashArray[ch]->frequency == 0)
         {
             items_in_heap++;
         }
-        hashArray[ch].frequency++;
+        hashArray[ch]->frequency++;
     }
-    huffman_leaf minHeap[items_in_heap];
+    fclose(fd);
+    // need to create a minheap from the array
+
+    /*
+        1. Create a new array and insert objects into the min heap
+            1.1 Need the total number of elements to put into min heap
+            1.2 Function to insert into min heap
+    */
+
+    huffman_leaf *minHeap[items_in_heap];
     int heap_boundary = 0;
-    int number_of_huffman_leaf = sizeof(minHeap) / sizeof(huffman_leaf);
     int i = 0;
     while (heap_boundary < items_in_heap)
     {
-        if (hashArray[i].frequency != 0)
+        if (hashArray[i]->frequency != 0)
         {
-            huffman_leaf item = hashArray[i];
-            minHeap[heap_boundary] = item;
-            heap_boundary++;
+            insert(minHeap, hashArray[i], &heap_boundary);
         }
         i++;
     }
-    for (int i = items_in_heap - 1; i >= 0; i--)
-    {
-        min_heapify(minHeap, i, items_in_heap - 1);
-    }
-    check_min_heap_property(minHeap, number_of_huffman_leaf);
-    build_huffman_tree(minHeap, number_of_huffman_leaf);
-    huffman_leaf HTree = minHeap[0];
-    walk_tree(HTree);
+    print_heap(minHeap, items_in_heap);
+    // for (int i = items_in_heap - 1; i >= 0; i--)
+    // {
+    //     min_heapify(minHeap, i, items_in_heap - 1);
+    // }
+    check_min_heap_property(minHeap, items_in_heap);
+    // build_huffman_tree(minHeap, number_of_huffman_leaf);
+    // huffman_leaf HTree = minHeap[0];
+    // walk_tree(HTree);
     return 0;
+}
+
+huffman_leaf *create_huffman_leaf(char j)
+{
+    huffman_leaf *ptr = (huffman_leaf *)malloc(sizeof(huffman_leaf));
+    ptr->frequency = 0;
+    ptr->is_internal_node = false;
+    ptr->left = NULL;
+    ptr->right = NULL;
+    ptr->letter = j;
+    return ptr;
 }
 
 void walk_tree(huffman_leaf tree)
@@ -155,49 +174,49 @@ void min_heapify(huffman_leaf a[], int i, int n)
     }
 }
 
-void print_heap(huffman_leaf a[], int n)
+void print_heap(huffman_leaf *a[], int n)
 {
     for (int i = 0; i < n; i++)
     {
-        printf("%d, ", a[i].frequency);
+        printf("Character : %c, Frequency : %d \n", a[i]->letter, a[i]->frequency);
     }
     printf("\n");
 }
 
-void check_min_heap_property(huffman_leaf a[], int n)
+void check_min_heap_property(huffman_leaf *a[], int n)
 {
     for (int i = 0; i < n; i++)
     {
-        huffman_leaf parent = a[i];
+        huffman_leaf *parent = a[i];
         int left_idx = left_child(i);
         int right_idx = right_child(i);
-        if (left_idx < n && a[left_idx].frequency < parent.frequency)
+        if (left_idx < n && a[left_idx]->frequency < parent->frequency)
         {
             printf("%d", left_idx);
             printf("Does not satisfy min heap property.\n");
-            printf("Parent : %d, Left: %d", parent.frequency, a[left_idx].frequency);
+            printf("Parent : %d, Left: %d", parent->frequency, a[left_idx]->frequency);
             break;
         }
-        if (right_idx < n && a[right_idx].frequency < parent.frequency)
+        if (right_idx < n && a[right_idx]->frequency < parent->frequency)
         {
             printf("Does not satisfy min heap property.\n");
-            printf("Parent : %d, Right: %d", parent.frequency, a[right_idx].frequency);
+            printf("Parent : %d, Right: %d", parent->frequency, a[right_idx]->frequency);
             break;
         }
     }
 }
 
-void build_huffman_tree(huffman_leaf a[], int n)
-{
-    int min_heap_boundary = n - 1;
-    while (min_heap_boundary > 0)
-    {
-        huffman_leaf left = dequeue(a, &min_heap_boundary);
-        huffman_leaf right = dequeue(a, &min_heap_boundary);
-        huffman_leaf new_node = (huffman_leaf){'\0', left.frequency + right.frequency, true, &left, &right};
-        insert(a, new_node, &min_heap_boundary);
-    }
-}
+// void build_huffman_tree(huffman_leaf a[], int n)
+// {
+//     int min_heap_boundary = n - 1;
+//     while (min_heap_boundary > 0)
+//     {
+//         huffman_leaf left = dequeue(a, &min_heap_boundary);
+//         huffman_leaf right = dequeue(a, &min_heap_boundary);
+//         huffman_leaf new_node = (huffman_leaf){'\0', left.frequency + right.frequency, true, &left, &right};
+//         insert(a, new_node, &min_heap_boundary);
+//     }
+// }
 
 huffman_leaf dequeue(huffman_leaf a[], int *n)
 {
@@ -208,15 +227,15 @@ huffman_leaf dequeue(huffman_leaf a[], int *n)
     return node;
 }
 
-void insert(huffman_leaf a[], huffman_leaf node, int *n)
+void insert(huffman_leaf *a[], huffman_leaf *node, int *n)
 {
-    // this might not work as expected
-    *n = *n + 1;
+    // n will be the position of the last element
     a[*n] = node;
+    *n = *n + 1;
     int i = *n - 1;
-    while (i != 0 && a[parent(i)].frequency > a[i].frequency)
+    while (i != 0 && a[parent(i)]->frequency > a[i]->frequency)
     {
-        swap(&a[parent(i)], &a[i]);
+        swap(a[parent(i)], a[i]);
         i = parent(i);
     }
 }
