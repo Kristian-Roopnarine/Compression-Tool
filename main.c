@@ -181,7 +181,6 @@ void swap(huffman_leaf *x, huffman_leaf *y)
 
 void min_heapify(huffman_leaf *a[], int i, int n)
 {
-    // get the current node
     int min = i;
     int left_idx = left_child(i);
     int right_idx = right_child(i);
@@ -194,7 +193,6 @@ void min_heapify(huffman_leaf *a[], int i, int n)
         min = right_idx;
     }
 
-    // perform swap if min has changed
     if (min != i)
     {
         swap(a[min], a[i]);
@@ -262,7 +260,6 @@ huffman_leaf *dequeue(huffman_leaf *a[], int *n)
 
 void insert(huffman_leaf *a[], huffman_leaf *node, int *n)
 {
-    // n will be the position of the last element
     *n = *n + 1;
     a[*n] = node;
     int i = *n - 1;
