@@ -3,15 +3,14 @@
 #include <string.h>
 #include <stdbool.h>
 
+#define SIZE 256
 int CHUNK_SIZE = 16 * 1024;
 char *read_argv_params(int, char *[]);
 
 int main(int argc, char *argv[])
 {
     FILE *fd;
-    size_t index = 0;
-    size_t size = 0;
-    char *buffer = (char *)malloc(sizeof(char) * CHUNK_SIZE), *tmp = (char *)malloc(sizeof(char) * CHUNK_SIZE);
+    u_int64_t hashArray[SIZE];
     char *file_name = (char *)malloc(sizeof(char) * CHUNK_SIZE);
     file_name = read_argv_params(argc, argv);
     fd = fopen(file_name, "r");
@@ -20,29 +19,26 @@ int main(int argc, char *argv[])
         printf("Error opening file");
         return 0;
     }
+    for (int i = 0; i < SIZE; i++)
+    {
+        hashArray[i] = 0;
+    }
     int ch = EOF;
     while (ch)
     {
         ch = getc(fd);
         if (ch == EOF)
         {
-            ch = 0;
+            printf("Ending...");
+            break;
         }
-        if (size <= index)
-        {
-            size += CHUNK_SIZE;
-            tmp = realloc(buffer, size);
-            if (!tmp)
-            {
-                free(buffer);
-                buffer = NULL;
-                break;
-            }
-            buffer = tmp;
-        }
-        buffer[index++] = ch;
+        hashArray[ch]++;
     }
-    free(tmp);
+    for (int j = 0; j < SIZE; j++)
+    {
+        printf("Character: %c, Frequency: %llu \n", j, hashArray[j]);
+    }
+    return 0;
 }
 
 char *read_argv_params(int argc, char *argv[])
